@@ -10,7 +10,7 @@
 -export([filter_all_out_of_order_txs/2, filter_out_of_order_txs/2]).
 -export([set_loss_probability/2, set_delay/2, set_mining_delay/2, set_xfer_speed/2]).
 -export([apply_tx/2, apply_txs/2, apply_mining_reward/4, validate/5, validate/8, find_recall_block/1, validate_wallet_list/1, calculate_reward_pool/4, calculate_proportion/3]).
--export([find_sync_block/1, get_current_block/1]).
+-export([find_sync_block/1, get_current_block/1, get_reward_addr/1, print_reward_addr/0, set_reward_addr/2, set_reward_addr_from_file/1, generate_and_set_reward_addr/0]).
 -export([start_link/1]).
 -export([retry_block/4, retry_full_block/4]).
 -export([filter_all_out_of_order_txs_large_test_slow/0,filter_out_of_order_txs_large_test_slow/0]).
@@ -469,6 +469,37 @@ get_reward_pool(Node) ->
 	after ?LOCAL_NET_TIMEOUT -> 0
 	end.
 
+get_reward_addr(Node) ->
+	Node ! {get_reward_addr, self()},
+	receive
+		{reward_addr, Addr} -> Addr
+	after ?LOCAL_NET_TIMEOUT -> 0
+	end.
+
+set_reward_addr(Node, Addr) ->
+	Node ! {set_reward_addr, Addr}.
+
+set_reward_addr_from_file(Filepath) ->
+	{_Priv, Pub} = ar_wallet:load(Filepath),
+	set_reward_addr(whereis(http_entrypoint_node), ar_wallet:to_address(Pub)),
+	ar:report(
+		[
+			{new_reward_address, ar_wallet:to_address(Pub)}
+		]
+	).
+
+generate_and_set_reward_addr() ->
+	{_Priv, Pub} = ar_wallet:new(),
+	set_reward_addr(whereis(http_entrypoint_node), ar_wallet:to_address(Pub)),
+	ar:report(
+		[
+			{new_reward_address, ar_wallet:to_address(Pub)}
+		]
+	).
+
+print_reward_addr() ->
+	ar_util:encode(get_reward_addr(whereis(http_entrypoint_node))).
+
 %% @doc Trigger a node to start mining a block.
 mine(Node) ->
 	Node ! mine.
@@ -697,6 +728,11 @@ server(
 		{get_reward_pool, PID} ->
 			PID ! {reward_pool, S#state.reward_pool},
 			server(S);
+		{get_reward_addr, PID} ->
+			PID ! {reward_addr, S#state.reward_addr},
+			server(S);
+		{set_reward_addr, Addr} ->
+			server(S#state{reward_addr = Addr});
 		mine ->
 			server(start_mining(S));
 		automine -> server(start_mining(S#state { automine = true }));
@@ -1130,7 +1166,8 @@ integrate_block_from_miner(
 					{indep_hash, ar_util:encode(NextB#block.indep_hash)},
 					{recall_block, RecallB#block.height},
 					{recall_hash, RecallB#block.indep_hash},
-					{txs, length(MinedTXs)}
+					{txs, length(MinedTXs)},
+					{reward_address, ar_util:encode(RewardAddr)}
 				]
 			),
 			lists:foreach(

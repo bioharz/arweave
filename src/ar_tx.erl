@@ -194,11 +194,19 @@ tx_cost_above_min(TX, Diff) ->
 %% the constant 3208 is the max byte size of each of the other fields
 %% Cost per byte is static unless size is bigger than 10mb, at which
 %% point cost per byte starts increasing linearly.
-calculate_min_tx_cost(Size, Diff) when Size < 10*1024*1024 ->
-	((Size+3208) * ?COST_PER_BYTE * ?DIFF_CENTER) div Diff;
-calculate_min_tx_cost(Size, Diff) ->
-	(Size*(Size+3208) * ?COST_PER_BYTE * ?DIFF_CENTER) div (Diff*10*1024*1024).
+% calculate_min_tx_cost(Size, Diff) when Size < 10*1024*1024 ->
+% 	((Size+3208) * ?COST_PER_BYTE * ?DIFF_CENTER) div Diff;
+% calculate_min_tx_cost(Size, Diff) ->
+% 	(Size*(Size+3208) * ?COST_PER_BYTE * ?DIFF_CENTER) div (Diff*10*1024*1024).
 
+calculate_min_tx_cost(Size, Diff) when Diff >= ?DIFF_CENTER ->
+	CurveSteepness = 2,
+	BaseCost = CurveSteepness*(Size*?COST_PER_BYTE) / (Diff - (?DIFF_CENTER - CurveSteepness)),
+	erlang:trunc(BaseCost * math:pow(1.2, Size/(1024*1024)));
+calculate_min_tx_cost(Size, _Diff) ->
+	CurveSteepness = 2,
+	BaseCost = CurveSteepness*(Size*?COST_PER_BYTE) / (?DIFF_CENTER - (?DIFF_CENTER - CurveSteepness)),
+	erlang:trunc(BaseCost * math:pow(1.2, Size/(1024*1024))).
 %% @doc Check whether each field in a transaction is within the given
 %% byte size limits
 tx_field_size_limit(TX) ->

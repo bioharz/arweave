@@ -28,11 +28,11 @@
 %% Winstons per AR.
 -define(WINSTON_PER_AR, 1000000000000).
 %% The base cost of a byte in AR
--define(BASE_BYTES_PER_AR, 1000000).
+-define(BASE_BYTES_PER_AR, 10000000).
 %% The minimum cost per byte for a single TX.
 -define(COST_PER_BYTE, (?WINSTON_PER_AR div ?BASE_BYTES_PER_AR)).
 %% The difficulty "center" at which 1 byte costs ?BASE_BYTES_PER_AR
--define(DIFF_CENTER, 25).
+-define(DIFF_CENTER, 40).
 
 %% The amount of the weave to store. 1.0 = 100%; 0.5 = 50% etc.
 -define(WEAVE_STOR_AMT, 1.0).
@@ -142,7 +142,8 @@
     reward_addr = unclaimed, % Address to credit mining reward to
     tags = [], % Miner specified tags
 	reward_pool = 0, % Current pool of mining reward (10% issued to block finder)
-	weave_size = 0 % The current size of the weave in bytes (data only)
+	weave_size = 0, % The current size of the weave in bytes (data only)
+	block_size = 0 % The size of the transactions inside this block
 }).
 %% A transaction, as stored in a block.
 -record(tx, {

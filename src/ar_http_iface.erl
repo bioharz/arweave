@@ -150,6 +150,7 @@ handle('POST', [<<"block">>], Req) ->
 	{Struct} = ar_serialize:dejsonify(BlockJSON),
 	{<<"recall_block">>, JSONRecallB} = lists:keyfind(<<"recall_block">>, 1, Struct),
 	{<<"new_block">>, JSONB} = lists:keyfind(<<"new_block">>, 1, Struct),
+	{<<"recall_size">>, RecallSize} = lists:keyfind(<<"recall_size">>, 1, Struct),
 	{<<"port">>, Port} = lists:keyfind(<<"port">>, 1, Struct),
 	{<<"key">>, KeyEnc} = lists:keyfind(<<"key">>, 1, Struct),
 	{<<"nonce">>, NonceEnc} = lists:keyfind(<<"nonce">>, 1, Struct),
@@ -183,7 +184,12 @@ handle('POST', [<<"block">>], Req) ->
 			{FinderPool, _} = ar_node:calculate_reward_pool(
 				ar_node:get_reward_pool(whereis(http_entrypoint_node)),
 				TXs,
-				BShadow#block.reward_addr
+				BShadow#block.reward_addr,
+				ar_node:calculate_proportion(
+					RecallSize,
+					BShadow#block.block_size,
+					BShadow#block.height
+				)
 				),
 			HashList =
 				case {BShadow#block.hash_list, ar_node:get_hash_list(whereis(http_entrypoint_node))} of
@@ -794,6 +800,7 @@ send_new_block(Host, Port, NewB, RecallB) ->
 						[
 							{<<"new_block">>, ar_serialize:block_to_json_struct(NewBShadow)},
 							{<<"recall_block">>, ar_util:encode(RecallBHash)},
+							{<<"recall_size">>, RecallB#block.block_size},
 							{<<"port">>, Port},
 							{<<"key">>, ar_util:encode(Key)},
 							{<<"nonce">>, ar_util:encode(Nonce)}
@@ -813,6 +820,7 @@ send_new_block(Host, Port, NewB, RecallB) ->
 					[
 						{<<"new_block">>, ar_serialize:block_to_json_struct(NewBShadow)},
 						{<<"recall_block">>, ar_util:encode(RecallBHash)},
+						{<<"recall_size">>, RecallB#block.block_size},
 						{<<"port">>, Port},
 						{<<"key">>, <<>>},
 						{<<"nonce">>, <<>>}
@@ -838,6 +846,7 @@ send_new_block(Host, Port, NewB, RecallB, Key, Nonce) ->
 					[
 						{<<"new_block">>, ar_serialize:block_to_json_struct(NewBShadow)},
 						{<<"recall_block">>, ar_util:encode(RecallBHash)},
+						{<<"recall_size">>, RecallB#block.block_size},
 						{<<"port">>, Port},
 						{<<"key">>, ar_util:encode(Key)},
 						{<<"nonce">>, ar_util:encode(Nonce)}

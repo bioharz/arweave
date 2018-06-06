@@ -38,7 +38,19 @@ add(Bs, TXs, HashList) ->
 add(Bs, TXs, HashList, unclaimed) ->
     add(Bs, TXs, HashList, <<>>);
 add([B|Bs], TXs, HashList, RewardAddr) ->
-    {FinderReward, RewardPool} = ar_node:calculate_reward_pool(B#block.reward_pool, TXs, RewardAddr),
+    RecallHash = ar_util:get_recall_hash(hd([B|Bs]), HashList),
+    RecallB = ar_storage:read_block(RecallHash),
+    {FinderReward, RewardPool} = 
+        ar_node:calculate_reward_pool(
+            B#block.reward_pool,
+            TXs,
+            RewardAddr,
+            ar_node:calculate_proportion(
+                RecallB#block.block_size,
+                B#block.block_size,
+                B#block.height
+            )
+        ),
     WalletList = ar_node:apply_mining_reward(
         ar_node:apply_txs(B#block.wallet_list, TXs),
         RewardAddr,
@@ -93,11 +105,11 @@ add([B|_Bs], RawTXs, HashList, RewardAddr, RewardPool, WalletList, Tags, RecallB
     % ar:d({ar_weave_add,{hashlist, HashList}, {walletlist, WalletList}, {txs, RawTXs}, {nonce, Nonce}, {diff, Diff}, {reward, RewardAddr}, {ts, Timestamp}, {tags, Tags} }),
     RecallB = ar_node:find_recall_block(HashList),
     TXs = [T#tx.id || T <- RawTXs],
-    WeaveSize = lists:foldl(
+    BlockSize = lists:foldl(
             fun(TX, Acc) ->
                 Acc + byte_size(TX#tx.data)
             end,
-            B#block.weave_size,
+            0,
             RawTXs
         ),
 	NewB =
@@ -130,7 +142,9 @@ add([B|_Bs], RawTXs, HashList, RewardAddr, RewardPool, WalletList, Tags, RecallB
             reward_addr = RewardAddr,
             tags = Tags,
             reward_pool = RewardPool,
-            weave_size = WeaveSize
+            weave_size = B#block.weave_size + BlockSize,
+            block_size = BlockSize
+        
         },
 	[NewB#block { indep_hash = indep_hash(NewB) }|HashList].
 

@@ -5,7 +5,7 @@
 -export([mine/1, automine/1, truncate/1]).
 -export([add_block/3, add_block/4, add_block/5]).
 -export([add_tx/2, add_peers/2]).
--export([calculate_reward/2]).
+-export([calculate_reward/2, calculate_static_reward/1]).
 -export([rejoin/2]).
 -export([filter_all_out_of_order_txs/2, filter_out_of_order_txs/2]).
 -export([set_loss_probability/2, set_delay/2, set_mining_delay/2, set_xfer_speed/2]).
@@ -1427,9 +1427,9 @@ calculate_reward(Height, Quantity) ->
 
 %% @doc Calculate the static reward received for mining a given block.
 %% This reward portion depends only on block height, not the number of transactions.
+calculate_static_reward(Height) when Height =< ?REWARD_DELAY-> 1;
 calculate_static_reward(Height) ->
-	?AR((0.2 * ?GENESIS_TOKENS * math:pow(2,-Height/?BLOCK_PER_YEAR) * math:log(2))/?BLOCK_PER_YEAR).
-
+	?AR((0.2 * ?GENESIS_TOKENS * math:pow(2,-(Height-?REWARD_DELAY)/?BLOCK_PER_YEAR) * math:log(2))/?BLOCK_PER_YEAR).
 %% @doc Given a TX, calculate an appropriate reward.
 calculate_tx_reward(#tx { reward = Reward }) ->
 	Reward.

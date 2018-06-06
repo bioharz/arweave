@@ -75,6 +75,8 @@
 -define(NUM_REGOSSIP_TX, 20).
 %% Maximum nunber of requests allowed by an IP in any 5 second period.
 -define(MAX_REQUESTS, 50).
+%% Delay before mining rewards manifest
+-define(REWARD_DELAY, ?BLOCK_PER_YEAR/4).
 %% Default list of peers if no others are specified
 -define(DEFAULT_PEER_LIST,
 	[

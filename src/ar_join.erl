@@ -146,7 +146,9 @@ fill_to_capacity(Peers, Written, ToWrite) ->
 	try
 		RandBlock = lists:nth(rand:uniform(length(ToWrite)-1), ToWrite),
 		case ar_node:get_full_block(Peers, RandBlock) of
-			unavailable -> fill_to_capacity(Peers, Written, ToWrite);
+			unavailable -> 
+				timer:sleep(3000),
+				fill_to_capacity(Peers, Written, ToWrite);
 			B ->
 				ar_storage:write_block( B#block {txs = [TX#tx.id || TX <- B#block.txs] }),
 				ar_storage:write_tx(B#block.txs),

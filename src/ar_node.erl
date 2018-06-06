@@ -828,7 +828,7 @@ server(
 		throw:Term ->
 			ar:report(
 				[
-					{'EXCEPTION', {Term}}
+					{'NodeEXCEPTION', {Term}}
 				]
 			),
 			server(S);
@@ -836,12 +836,13 @@ server(
 			ar:report(
 				[
 					{'NodeEXIT', Term}
-				]
+				],
+			server(S)
 			);
 		error:Term ->
 			ar:report(
 				[
-					{'Error', {Term, erlang:get_stacktrace()}}
+					{'NodeERROR', {Term, erlang:get_stacktrace()}}
 				]
 			),
 			server(S)

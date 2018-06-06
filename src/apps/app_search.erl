@@ -14,7 +14,8 @@
 %% @doc For compatibility. Dets database supercedes state.
 -record(arql_tag, {name, value, tx}).
 -record(state,{
-	gossip % State of the gossip protocol.
+	gossip,
+	towrite = []% State of the gossip protocol.
 }).
 
 %%@doc Start a search node, linking to a supervisor process
@@ -42,8 +43,7 @@ server(S = #state { gossip = _GS }) ->
 				server(S);
 			stop -> ok;
 			{add_tx, Name, Value, ID} ->
-				storeDB(Name, Value, ID),
-				server(S);
+				server(S #state { towrite = [S#state.towrite|#arql_tag{ name = Name, value = Value, tx = ID}]});
 			_OtherMsg -> server(S)
 		end
 	catch
@@ -88,7 +88,7 @@ initDB() ->
 				[
 					{attributes, record_info(fields, arql_tag)},
 					{type, bag},
-					{disc_copies, [node()]}
+					{disc_only_copies, [node()]}
 				]
 			)
 	end.

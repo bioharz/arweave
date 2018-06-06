@@ -153,7 +153,8 @@ server(S = #state { gossip = GS0, external_peers = ExtPeers }) ->
 			ar:report(
 				[
 					{'EXIT', Term}
-				]
+				],
+				server(S)
 			);
 		error:Term ->
 			ar:report(

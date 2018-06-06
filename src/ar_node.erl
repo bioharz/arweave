@@ -9,7 +9,7 @@
 -export([rejoin/2]).
 -export([filter_all_out_of_order_txs/2, filter_out_of_order_txs/2]).
 -export([set_loss_probability/2, set_delay/2, set_mining_delay/2, set_xfer_speed/2]).
--export([apply_tx/2, apply_txs/2, apply_mining_reward/4, validate/5, validate/8, find_recall_block/1, calculate_reward_pool/3]).
+-export([apply_tx/2, apply_txs/2, apply_mining_reward/4, validate/5, validate/8, validate_wallet_list/1, find_recall_block/1, calculate_reward_pool/3]).
 -export([find_sync_block/1, get_current_block/1]).
 -export([start_link/1]).
 -export([retry_block/4, retry_full_block/4]).
@@ -1492,7 +1492,7 @@ start_mining(S = #state { hash_list = BHL, txs = TXs, reward_addr = RewardAddr, 
 
 -ifdef(DEBUG).
 calculate_delay(0) -> 0;
-calculate_delay(Bytes) -> ((Bytes * 100) div 1000).
+calculate_delay(Bytes) -> 0.
 -else.
 calculate_delay(0) -> 0;
 calculate_delay(Bytes) -> 30000 + ((Bytes * 300) div 1000).

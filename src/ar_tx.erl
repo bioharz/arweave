@@ -98,7 +98,8 @@ verify(TX, Diff, WalletList) ->
 		tx_field_size_limit(TX) and
 		tag_field_legal(TX) and
 		check_last_tx(WalletList, TX) and
-		tx_verify_hash(TX)
+		tx_verify_hash(TX) and
+		ar_node:validate_wallet_list(ar_node:apply_txs(WalletList, [TX]))
 	of
 		true -> true;
 		false ->
@@ -144,7 +145,8 @@ verify(TX, Diff, WalletList) ->
 		tx_field_size_limit(TX) and
 		tag_field_legal(TX) and
 		check_last_tx(WalletList, TX) and
-		tx_verify_hash(TX)
+		tx_verify_hash(TX) and
+		ar_node:validate_wallet_list(ar_node:apply_txs(WalletList, [TX]))
 	of
 		true -> true;
 		false ->

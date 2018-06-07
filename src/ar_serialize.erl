@@ -228,7 +228,8 @@ tx_to_json_struct(
 		quantity = Quantity,
 		data = Data,
 		reward = Reward,
-		signature = Sig
+		signature = Sig,
+		timestamp = Timestamp
 	}) ->
 	{
 		[
@@ -252,7 +253,8 @@ tx_to_json_struct(
 			{quantity, integer_to_binary(Quantity)},
 			{data, ar_util:encode(Data)},
 			{reward, integer_to_binary(Reward)},
-			{signature, ar_util:encode(Sig)}
+			{signature, ar_util:encode(Sig)},
+			{timestamp, integer_to_binary(Timestamp)}
 		]
 	}.
 
@@ -282,7 +284,8 @@ json_struct_to_tx(JSONTX) ->
 		quantity = binary_to_integer(find_value(<<"quantity">>, TXStruct)),
 		data = ar_util:decode(find_value(<<"data">>, TXStruct)),
 		reward = binary_to_integer(find_value(<<"reward">>, TXStruct)),
-		signature = ar_util:decode(find_value(<<"signature">>, TXStruct))
+		signature = ar_util:decode(find_value(<<"signature">>, TXStruct)),
+		timestamp = binary_to_integer(find_value(<<"timestamp">>, TXStruct))
 	}.
 
 %% @doc Translate a wallet list into JSON.

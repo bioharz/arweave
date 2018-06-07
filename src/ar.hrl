@@ -39,7 +39,7 @@
 %% The number of blocks behind the most recent block to store.
 -define(STORE_BLOCKS_BEHIND_CURRENT, 25).
 %% WARNING: ENABLE ONLY WHILE TESTING
-%-define(DEBUG, debug).
+-define(DEBUG, debug).
 %% Speed to run the network at when simulating.
 -define(DEBUG_TIME_SCALAR, 1.0).
 
@@ -157,7 +157,8 @@
 	quantity = 0, % Amount to send
 	data = <<>>, % Data in transaction (if data transaction).
 	signature = <<>>, % Transaction signature.
-	reward = 0 % Transaction mining reward.
+	reward = 0, % Transaction mining reward.
+	timestamp = 0
 }).
 
 %% Gossip protocol state. Passed to and from the gossip library functions.

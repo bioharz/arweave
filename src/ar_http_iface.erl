@@ -187,7 +187,7 @@ handle('POST', [<<"block">>], Req) ->
 				BShadow#block.reward_addr,
 				ar_node:calculate_proportion(
 					RecallSize,
-					BShadow#block.block_size,
+					BShadow#block.weave_size,
 					BShadow#block.height
 				)
 				),

@@ -47,7 +47,7 @@ add([B|Bs], TXs, HashList, RewardAddr) ->
             RewardAddr,
             ar_node:calculate_proportion(
                 RecallB#block.block_size,
-                B#block.block_size,
+                B#block.weave_size,
                 B#block.height
             )
         ),

@@ -975,7 +975,7 @@ process_new_block(RawS1, NewGS, NewB, RecallB, Peer, HashList)
 					NewB#block.reward_addr,
 					calculate_proportion(
 						RecallB#block.block_size,
-						NewB#block.block_size,
+						NewB#block.weave_size,
 						NewB#block.height
 					)
 				),
@@ -1103,11 +1103,19 @@ integrate_block_from_miner(
             reward_addr = RewardAddr,
             tags = Tags,
 			reward_pool = OldPool,
-			weave_size = WeaveSize
+			weave_size = OldWeaveSize
 		},
 		MinedTXs, Diff, Nonce, Timestamp) ->
 	% Calculate the new wallet list (applying TXs and mining rewards).
     RecallB = ar_node:find_recall_block(HashList),
+    WeaveSize = OldWeaveSize +
+        lists:foldl(
+            fun(TX, Acc) ->
+                Acc + byte_size(TX#tx.data)
+            end,
+            0,
+            TXs
+        ),
 	{FinderReward, RewardPool} = 
 		calculate_reward_pool(
 			OldPool,
@@ -1167,7 +1175,10 @@ integrate_block_from_miner(
 					{recall_block, RecallB#block.height},
 					{recall_hash, RecallB#block.indep_hash},
 					{txs, length(MinedTXs)},
-					{reward_address, ar_util:encode(RewardAddr)}
+					case is_atom(RewardAddr) of
+						true -> {reward_address, unclaimed};
+						false -> {reward_address, ar_util:encode(RewardAddr)}
+					end
 				]
 			),
 			lists:foreach(
@@ -1365,7 +1376,7 @@ calculate_reward_pool(OldPool, TXs, _RewardAddr, Proportion) ->
 			TXs
 		)
 	),
-	FinderReward = Pool * (Proportion div 100),
+	FinderReward = erlang:trunc(Pool * Proportion),
 	RemainingPool = Pool - FinderReward,
 	{FinderReward, OldPool + RemainingPool}.
 
@@ -1555,7 +1566,7 @@ start_mining(S = #state { hash_list = BHL, txs = TXs, reward_addr = RewardAddr, 
 calculate_delay(0) -> 0;
 calculate_delay(Bytes) -> 0.
 -else.
-calculate_delay(0) -> 0;
+calculate_delay(0) -> 30000;
 calculate_delay(Bytes) -> 30000 + ((Bytes * 300) div 1000).
 -endif.
 
@@ -1566,12 +1577,12 @@ calculate_proportion(RecallSize, WeaveSize, Length) when (WeaveSize == 0)->
 calculate_proportion(RecallSize, WeaveSize, Length) when RecallSize >= (WeaveSize/Length) ->
 	XRaw = ((Length * RecallSize)/WeaveSize) -1,
 	X = min(XRaw, 1023),
-	erlang:trunc(100*(math:pow(2, X)/(math:pow(2, X) + 2)));
+	max(0.1, (math:pow(2, X)/(math:pow(2, X) + 2)));
 calculate_proportion(RecallSize, WeaveSize, Length) when RecallSize == 0 -> calculate_proportion(1, WeaveSize, Length);
 calculate_proportion(RecallSize, WeaveSize, Length) ->
 	XRaw = -(((Length * WeaveSize)/RecallSize) -1),
 	X = min(XRaw, 1023),
-	erlang:trunc(100*(math:pow(2, X)/(math:pow(2, X) + 2))).
+	max(0.1, (math:pow(2, X)/(math:pow(2, X) + 2))).
 
 generate_floating_wallet_list(WalletList, []) ->
 	WalletList;

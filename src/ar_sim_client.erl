@@ -79,7 +79,7 @@ gen_test_wallet() ->
 	lists:foreach(
 		fun(_) ->
 			{{Priv, Pub}, Pub} = ar_wallet:new_keyfile(),
-			Addr = ar_wallet:to_address(Pub),
+			Addr = binary_to_list(ar_wallet:to_address(Pub)),
 			file:write(File, [ar_util:encode(Addr) ++ "," ++ integer_to_list(Qty) ++ "\n"]),
 			file:write(File2, [ar_util:encode(Priv) ++ "," ++ ar_util:encode(Pub) ++ "\n"])
 		end,

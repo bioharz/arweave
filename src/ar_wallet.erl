@@ -1,6 +1,6 @@
 -module(ar_wallet).
 -export([new/0, sign/2, verify/3, to_address/1, new_keyfile/0, load_keyfile/1, to_binary/1]).
--define(PUBLIC_EXPNT, 17489).
+-define(PUBLIC_EXPNT, 65537).
 -include("ar.hrl").
 -include_lib("eunit/include/eunit.hrl").
 -include_lib("public_key/include/public_key.hrl").
@@ -22,7 +22,7 @@ new_keyfile() ->
 			ar_serialize:jsonify(
 				{
 					[
-						{kty, "RSA"},
+						{kty, <<"RSA">>},
 						{ext, true},
 						{e, ar_util:encode(Expnt)},
 						{n, ar_util:encode(Pub)},

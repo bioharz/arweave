@@ -23,7 +23,9 @@ init(WalletList, StartingDiff) ->
 			txs = [],
 			wallet_list = WalletList,
 			hash_list = [],
-			diff = StartingDiff
+            diff = StartingDiff,
+            weave_size = 0,
+            block_size = 0
         },
     B1 = B0#block { last_retarget = B0#block.timestamp },
     [B1#block { indep_hash = indep_hash(B1) }].

@@ -248,7 +248,7 @@ try_apply_block(HashList, NextB, TXs, B, RecallB) ->
 			NextB#block.reward_addr,
 			ar_node:calculate_proportion(
 				RecallB#block.block_size,
-				NextB#block.block_size,
+				NextB#block.weave_size,
 				NextB#block.height
 			)
 		),

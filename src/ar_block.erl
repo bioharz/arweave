@@ -202,6 +202,14 @@ generate_block_data_segment(CurrentB, RecallB, TXs, RewardAddr, Timestamp, Tags)
         true -> Timestamp;
         false -> CurrentB#block.last_retarget
     end,
+    WeaveSize = CurrentB#block.weave_size +
+        lists:foldl(
+            fun(TX, Acc) ->
+                Acc + byte_size(TX#tx.data)
+            end,
+            0,
+            TXs
+        ),
     {FinderReward, RewardPool} = 
         ar_node:calculate_reward_pool(
             CurrentB#block.reward_pool,
@@ -209,8 +217,8 @@ generate_block_data_segment(CurrentB, RecallB, TXs, RewardAddr, Timestamp, Tags)
             RewardAddr,
             ar_node:calculate_proportion(
                 RecallB#block.block_size,
-                CurrentB#block.block_size,
-                CurrentB#block.height
+                WeaveSize,
+                CurrentB#block.height + 1
             )
         ),
     NewWalletList =
@@ -314,8 +322,8 @@ verify_wallet_list(NewB, OldB, RecallB, NewTXs) ->
             NewB#block.reward_addr,
             ar_node:calculate_proportion(
                 RecallB#block.block_size,
-                NewB#block.block_size,
-                NewB#block.height
+                NewB#block.weave_size,
+                NewB#block.height 
             )
         ),
     (NewB#block.reward_pool == RewardPool) and

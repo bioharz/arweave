@@ -17,7 +17,7 @@ new() ->
 %% @doc Generates a new wallet public and private key, with a corresponding keyfile
 new_keyfile() ->
 	{[Expnt, Pub], [Expnt, Pub, Priv, P1, P2, E1, E2, C]} =
-		crypto:generate_key(rsa, {4096, 17489}),
+		crypto:generate_key(rsa, {?PRIV_KEY_SZ, ?PUBLIC_EXPNT}),
 		Key = 
 			ar_serialize:jsonify(
 				{

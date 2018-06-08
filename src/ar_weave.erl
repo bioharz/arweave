@@ -16,13 +16,13 @@ init() -> init(ar_util:genesis_wallets()).
 init(WalletList) -> init(WalletList, ?DEFAULT_DIFF).
 init(WalletList, StartingDiff) ->
 	% Generate and dispatch a new data transaction.
-    TXs = read_genesis_txs(),
+    %TXs = read_genesis_txs(),
 	B0 =
 		#block{
 			height = 0,
 			hash = crypto:strong_rand_bytes(32),
 			nonce = crypto:strong_rand_bytes(32),
-			txs = TXs,
+			txs = [],%TXs,
 			wallet_list = WalletList,
 			hash_list = [],
             diff = StartingDiff,

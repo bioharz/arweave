@@ -86,7 +86,6 @@ start(Peers, HashList, MiningDelay, RewardAddr, AutoJoin, Diff, LastRetarget) ->
 				_ ->
 					do_nothing
 			end,
-			track_txs(),	
 			Gossip =
 				ar_gossip:init(
 					lists:filter(
@@ -1082,7 +1081,7 @@ integrate_new_block(
 		reset_miner(
 			S#state {
 				hash_list = [NewB#block.indep_hash|HashList],
-				txs = remove_bad_txs(KeepNotMinedTXs),
+				txs = ar_track_tx_db:remove_bad_txs(KeepNotMinedTXs),
 				height = NewB#block.height,
 				floating_wallet_list = apply_txs(WalletList, TXs),
 				reward_pool = NewB#block.reward_pool,
@@ -1194,7 +1193,7 @@ integrate_block_from_miner(
 						gossip = NewGS,
 						hash_list =
 							[NextB#block.indep_hash|HashList],
-						txs = remove_bad_txs(NotMinedTXs), % TXs not included in the block
+						txs = ar_track_tx_db:remove_bad_txs(NotMinedTXs), % TXs not included in the block
 						height = NextB#block.height,
 						floating_wallet_list = apply_txs(WalletList, NotMinedTXs),
 						reward_pool = RewardPool,
@@ -1607,34 +1606,6 @@ generate_floating_wallet_list(WalletList, [T|TXs]) ->
 	% ).
 
 %% @doc Start TX tracking database
-track_txs() ->
-	spawn(
-		fun() ->
-			ar:report([starting_tx_db]),
-			ets:new(ar_tx_track_db, [set, public, named_table]),
-			receive stop -> ok end
-		end
-	),
-	% Add a short wait to ensure that the table has been created
-	% before returning.
-	receive after 250 -> ok end.
-
-%% @doc Filter out transactions that have been in nodes state for too long
-remove_bad_txs(TXs) ->
-	lists:filter(
-		fun(T) ->
-			case ets:lookup(ar_tx_track_db, T#tx.id) of
-				[{_Key, 0}] -> false;
-				[{Key, Value}] -> 
-					ets:insert(ar_tx_track_db, {Key, Value-1}),
-					true;
-				_ -> 
-					ets:insert(ar_tx_track_db, {T#tx.id, 3}),
-					true
-			end
-		end,
-		TXs
-	).
 
 filter_all_out_of_order_txs(WalletList, InTXs) ->
 	filter_all_out_of_order_txs(WalletList, InTXs, []).

@@ -64,8 +64,7 @@ signature_data_segment(T) ->
 		(list_to_binary(integer_to_list(T#tx.quantity)))/binary,
 		(list_to_binary(integer_to_list(T#tx.reward)))/binary,
 		(T#tx.last_tx)/binary,
-		(tags_to_binary(T#tx.tags))/binary,
-		(list_to_binary(integer_to_list(T#tx.timestamp)))/binary
+		(tags_to_binary(T#tx.tags))/binary
 	>>.
 
 %% @doc Cryptographicvally sign ('claim ownership') of a transaction. After it is signed, it can be
@@ -222,11 +221,9 @@ tx_field_size_limit(TX) ->
 			(byte_size(tags_to_binary(TX#tx.tags)) =< 2048) and
 			(byte_size(TX#tx.target) =< 32) and
 			(byte_size(integer_to_binary(TX#tx.quantity)) =< 21) and
-			% 65mb initial limit on TX data size, plans to be removed in future releases.
-			(byte_size(TX#tx.data) =< 65000000) and
+			(byte_size(TX#tx.data) =< 6000000) and
 			(byte_size(TX#tx.signature) =< 512) and
-			(byte_size(integer_to_binary(TX#tx.reward)) =< 21) and
-			(byte_size(integer_to_binary(TX#tx.timestamp)) =< 12);
+			(byte_size(integer_to_binary(TX#tx.reward)) =< 21);
 		false -> false
 	end.
 

@@ -15,12 +15,14 @@
 init() -> init(ar_util:genesis_wallets()).
 init(WalletList) -> init(WalletList, ?DEFAULT_DIFF).
 init(WalletList, StartingDiff) ->
+	% Generate and dispatch a new data transaction.
+    TXs = read_genesis_txs(),
 	B0 =
 		#block{
 			height = 0,
 			hash = crypto:strong_rand_bytes(32),
 			nonce = crypto:strong_rand_bytes(32),
-			txs = [],
+			txs = TXs,
 			wallet_list = WalletList,
 			hash_list = [],
 			diff = StartingDiff
@@ -223,3 +225,31 @@ is_tx_on_block_list([#block { txs = TXs }|Bs], TXID) ->
 
 is_data_on_block_list(_, _) -> false.
 
+read_genesis_txs() ->
+    {ok, Files} = file:list_dir("data/genesis_txs"),
+    lists:foldl(
+        fun(F, Acc) ->
+            file:copy("data/genesis_txs/" ++ F, "txs/" ++ F),
+            [ar_util:decode(hd(string:split(F, ".")))|Acc]
+        end,
+        [],
+        Files
+    ).
+
+create_genesis_txs() ->
+    TXs = lists:map(
+        fun({M}) ->
+            {Priv, Pub} = ar_wallet:new(),
+            LastTx = <<>>,
+            Data = unicode:characters_to_binary(M),
+            TX = ar_tx:new(Data, 0, LastTx),
+            Reward = 0,
+            SignedTX = ar_tx:sign(TX#tx{reward = Reward}, Priv, Pub),
+            ar:d(M),
+            ar_storage:write_tx(SignedTX),
+            SignedTX
+        end,
+        ?GENESIS_BLOCK_MESSAGES
+    ),
+    file:write_file("genesis_wallets.csv", lists:map(fun(T) -> binary_to_list(ar_util:encode(T#tx.id)) ++ "," end, TXs)),
+    [T#tx.id || T <- TXs].

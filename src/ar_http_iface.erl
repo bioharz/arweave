@@ -1123,7 +1123,9 @@ handle_block_field_response({ok, {{<<"500">>, _}, _, _}}) -> unavailable.
 %% @doc Process the response of a /tx call.
 handle_tx_response({ok, {{<<"200">>, _}, _, Body, _, _}}) ->
 	ar_serialize:json_struct_to_tx(Body);
+handle_tx_response({ok, {{<<"202">>, _}, _, _, _, _}}) -> pending;
 handle_tx_response({ok, {{<<"404">>, _}, _, _, _, _}}) -> not_found;
+handle_tx_response({ok, {{<<"410">>, _}, _, _, _, _}}) -> gone;
 handle_tx_response({ok, {{<<"500">>, _}, _, _, _, _}}) -> not_found.
 
 %% @doc Helper function : registers a new node as the entrypoint.

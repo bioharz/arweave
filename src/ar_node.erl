@@ -85,7 +85,8 @@ start(Peers, HashList, MiningDelay, RewardAddr, AutoJoin, Diff, LastRetarget) ->
 					ar_join:start(self(), Peers);
 				_ ->
 					do_nothing
-			end,			
+			end,
+			track_txs(),	
 			Gossip =
 				ar_gossip:init(
 					lists:filter(
@@ -803,7 +804,7 @@ server(
 				undefined -> ok;
 				_ -> erlang:unregister(fork_recovery_server)
 			end,
-			ar_cleanup:remove_invalid_blocks(NewHs),
+			%ar_cleanup:remove_invalid_blocks(NewHs),
 			TXPool = S#state.txs ++ S#state.potential_txs,
 			TXs = filter_all_out_of_order_txs(NewB#block.wallet_list, TXPool),
 			PotentialTXs = TXPool -- TXs,
@@ -835,7 +836,7 @@ server(
 					{height, NewB#block.height}
 				]
 			),
-			ar_cleanup:remove_invalid_blocks(NewHs),
+			%ar_cleanup:remove_invalid_blocks(NewHs),
 			TXPool = S#state.txs ++ S#state.potential_txs,
 			TXs = filter_all_out_of_order_txs(NewB#block.wallet_list, TXPool),
 			PotentialTXs = TXPool -- TXs,
@@ -1081,7 +1082,7 @@ integrate_new_block(
 		reset_miner(
 			S#state {
 				hash_list = [NewB#block.indep_hash|HashList],
-				txs = KeepNotMinedTXs,
+				txs = remove_bad_txs(KeepNotMinedTXs),
 				height = NewB#block.height,
 				floating_wallet_list = apply_txs(WalletList, TXs),
 				reward_pool = NewB#block.reward_pool,
@@ -1193,7 +1194,7 @@ integrate_block_from_miner(
 						gossip = NewGS,
 						hash_list =
 							[NextB#block.indep_hash|HashList],
-						txs = NotMinedTXs, % TXs not included in the block
+						txs = remove_bad_txs(NotMinedTXs), % TXs not included in the block
 						height = NextB#block.height,
 						floating_wallet_list = apply_txs(WalletList, NotMinedTXs),
 						reward_pool = RewardPool,
@@ -1224,7 +1225,7 @@ add_tx_to_server(S, NewGS, TX) ->
 				gossip = NewGS,
 				waiting_txs = (S#state.waiting_txs -- [TX]) });
         false ->
-            server(S#state { gossip = NewGS })
+            server(S#state { gossip = NewGS , waiting_txs = (S#state.waiting_txs -- [TX]) })
     end.
 
 %% @doc Validate a new block, given a server state, a claimed new block, the last block,
@@ -1604,6 +1605,36 @@ generate_floating_wallet_list(WalletList, [T|TXs]) ->
 	% 	CurWalletList,
 	% 	TXs
 	% ).
+
+%% @doc Start TX tracking database
+track_txs() ->
+	spawn(
+		fun() ->
+			ar:report([starting_tx_db]),
+			ets:new(ar_tx_track_db, [set, public, named_table]),
+			receive stop -> ok end
+		end
+	),
+	% Add a short wait to ensure that the table has been created
+	% before returning.
+	receive after 250 -> ok end.
+
+%% @doc Filter out transactions that have been in nodes state for too long
+remove_bad_txs(TXs) ->
+	lists:filter(
+		fun(T) ->
+			case ets:lookup(ar_tx_track_db, T#tx.id) of
+				[{_Key, 0}] -> false;
+				[{Key, Value}] -> 
+					ets:insert(ar_tx_track_db, {Key, Value-1}),
+					true;
+				_ -> 
+					ets:insert(ar_tx_track_db, {T#tx.id, 3}),
+					true
+			end
+		end,
+		TXs
+	).
 
 filter_all_out_of_order_txs(WalletList, InTXs) ->
 	filter_all_out_of_order_txs(WalletList, InTXs, []).

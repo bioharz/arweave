@@ -198,7 +198,7 @@ create_data_tx({Priv, Pub}, Data) ->
 		byte_size(<<Cost>>),
 		Diff
 		),
-	ar_tx:sign(TX#tx{reward = Reward, timestamp = ar:timestamp()}, Priv, Pub);
+	ar_tx:sign(TX#tx{reward = Reward}, Priv, Pub);
 create_data_tx(KeyList, Data) ->
 	{Priv, Pub} = lists:nth(rand:uniform(1), KeyList),
 	create_data_tx({Priv, Pub}, Data).
@@ -219,7 +219,7 @@ create_random_data_tx({Priv, Pub}, MaxTxLen) ->
 		byte_size(<<Cost>>),
 		Diff
 		),
-	ar_tx:sign(TX#tx{reward = Reward, timestamp = ar:timestamp()}, Priv, Pub);
+	ar_tx:sign(TX#tx{reward = Reward}, Priv, Pub);
 
 create_random_data_tx(KeyList, MaxTxLen) ->
 	{Priv, Pub} = lists:nth(rand:uniform(1000), KeyList),
@@ -237,7 +237,7 @@ create_random_data_tx(KeyList, MaxTxLen) ->
 		byte_size(<<Cost>>),
 		Diff
 		),
-	ar_tx:sign(TX#tx{reward = Reward, timestamp = ar:timestamp()}, Priv, Pub).
+	ar_tx:sign(TX#tx{reward = Reward}, Priv, Pub).
 
 create_random_data_tx({Priv, Pub}, MaxTxLen, OldTX) ->
 	% Generate and dispatch a new data transaction.
@@ -254,7 +254,7 @@ create_random_data_tx({Priv, Pub}, MaxTxLen, OldTX) ->
 		byte_size(<<Cost>>),
 		Diff
 		),
-	ar_tx:sign(TX#tx{reward = Reward, timestamp = ar:timestamp()}, Priv, Pub).
+	ar_tx:sign(TX#tx{reward = Reward}, Priv, Pub).
 %% @doc Create a random financial TX between two wallets of amount MaxAmount
 create_random_fin_tx(KeyList, MaxAmount) ->
 	{Priv, Pub} = lists:nth(rand:uniform(1000), KeyList),
@@ -273,7 +273,7 @@ create_random_fin_tx(KeyList, MaxAmount) ->
 		(byte_size(<<Cost>>)),
 		Diff
 		),
-	ar_tx:sign(TX#tx{reward = Reward, tags = [{"3123123Key", "123141515Value"}], timestamp = ar:timestamp()}, Priv, Pub).
+	ar_tx:sign(TX#tx{reward = Reward, tags = [{"3123123Key", "123141515Value"}]}, Priv, Pub).
 
 create_random_fin_tx({Priv, Pub}, KeyList, MaxAmount) ->
 	{_, Dest} = lists:nth(rand:uniform(10), KeyList),
@@ -291,7 +291,7 @@ create_random_fin_tx({Priv, Pub}, KeyList, MaxAmount) ->
 		(byte_size(<<Cost>>)),
 		Diff
 		),
-	ar_tx:sign(TX#tx{reward = Reward, timestamp = ar:timestamp()}, Priv, Pub).
+	ar_tx:sign(TX#tx{reward = Reward}, Priv, Pub).
 %% @doc Read a list of public/private keys from a file
 read_key_list(_File, eof, Keys) ->
 	Keys;

@@ -74,7 +74,7 @@
 %% Amount of peers without a given transaction to send a new transaction to
 -define(NUM_REGOSSIP_TX, 20).
 %% Maximum nunber of requests allowed by an IP in any 30 second period.
--define(MAX_REQUESTS, 300000).
+-define(MAX_REQUESTS, 3000).
 %% Delay before mining rewards manifest
 -define(REWARD_DELAY, ?BLOCK_PER_YEAR/4).
 %% Default list of peers if no others are specified
@@ -161,6 +161,7 @@
 }).
 -define(GENESIS_BLOCK_MESSAGES,
 [
+	{"Сговорна дружина планина повдига!"},
 	{"I love you"},
 	{"So cool to buy archain"},
 	{"I am sorry Josch. I'm afraid I can't do that."},
@@ -176,7 +177,6 @@
 	{"Are we there yet?"},
 	{"High risk"},
 	{"high reward."},
-	{"Сговорна дружина планина повдига!"},
 	{"Here we go :)"},
 	{"If God is for us"},
 	{"who can be against us?"},

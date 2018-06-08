@@ -234,7 +234,7 @@ generate_block_data_segment(CurrentB, RecallB, TXs, RewardAddr, Timestamp, Tags)
     % ar:d({wallets, binary:list_to_bin(lists:map(fun ar_wallet:to_binary/1, NewWalletList))}),
     % ar:d({reward, case is_atom(RewardAddr) of true -> <<>>; false -> RewardAddr end}),
     % ar:d({tags, list_to_binary(Tags)}),
-    % ar:d({recall, block_to_binary(RecallB)}),
+    % ar:d({recall, byte_size(block_to_binary(RecallB))}),
     % ar:d({txs, binary:list_to_bin(lists:map(fun ar_tx:tx_to_binary/1, TXs))}),
     crypto:hash(
         ?MINING_HASH_ALG,

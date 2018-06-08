@@ -5,6 +5,7 @@
 -export([calculate_recall_block/1, calculate_recall_block/2]).
 -export([generate_hash_list/1]).
 -export([is_data_on_block_list/2, is_tx_on_block_list/2]).
+-export([create_genesis_txs/0]).
 -include("ar.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
@@ -16,13 +17,13 @@ init() -> init(ar_util:genesis_wallets()).
 init(WalletList) -> init(WalletList, ?DEFAULT_DIFF).
 init(WalletList, StartingDiff) ->
 	% Generate and dispatch a new data transaction.
-    %TXs = read_genesis_txs(),
+    TXs = read_genesis_txs(),
 	B0 =
 		#block{
 			height = 0,
 			hash = crypto:strong_rand_bytes(32),
 			nonce = crypto:strong_rand_bytes(32),
-			txs = [],%TXs,
+			txs = TXs,
 			wallet_list = WalletList,
 			hash_list = [],
             diff = StartingDiff,
@@ -247,7 +248,6 @@ create_genesis_txs() ->
             TX = ar_tx:new(Data, 0, LastTx),
             Reward = 0,
             SignedTX = ar_tx:sign(TX#tx{reward = Reward}, Priv, Pub),
-            ar:d(M),
             ar_storage:write_tx(SignedTX),
             SignedTX
         end,

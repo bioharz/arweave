@@ -270,7 +270,7 @@ handle('POST', [<<"tx">>], Req) ->
 	TXJSON = elli_request:body(Req),
 	TX = ar_serialize:json_struct_to_tx(TXJSON),
 	case ar_node:get_current_diff(whereis(http_entrypoint_node)) of
-		unavailable -> {400, [], <<"Transaction verification failed.">>};
+		unavailable -> {503, [], <<"Transaction verification failed.">>};
 		Diff ->
 			FloatingWalletList = ar_node:get_wallet_list(whereis(http_entrypoint_node)),
 			% OrigPeer =

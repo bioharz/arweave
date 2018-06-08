@@ -87,7 +87,7 @@ join_peers(Peer) -> ar_http_iface:add_peer(Peer).
 %% blocks and recall blocks. Alternatively, if the blocklist is shorter than
 %% ?STORE_BLOCKS_BEHIND_CURRENT, simply get all existing blocks and recall blocks
 get_block_and_trail(_Peers, NewB, []) ->
-	ar_storage:write_block(NewB);
+	ar_storage:write_block(NewB#block { txs = [T#tx.id || T <- NewB#block.txs] });
 get_block_and_trail(Peers, NewB, HashList) ->
 	get_block_and_trail(Peers, NewB, ?STORE_BLOCKS_BEHIND_CURRENT, HashList).
 get_block_and_trail(_, unavailable, _, _) -> ok;

@@ -80,10 +80,10 @@ gen_test_wallet() ->
 		fun(_) ->
 			{{Priv, Pub}, Pub} = ar_wallet:new_keyfile(),
 			Addr = ar_wallet:to_address(Pub),
-			file:write(File, [ar_util:encode(Addr) ++ "," ++ integer_to_list(Qty) ++ "\n"]),
-			file:write(File2, [ar_util:encode(Priv) ++ "," ++ ar_util:encode(Pub) ++ "\n"])
+			file:write(File, [binary_to_list(ar_util:encode(Addr)) ++ "," ++ integer_to_list(Qty) ++ "\n"]),
+			file:write(File2, [binary_to_list(ar_util:encode(Priv)) ++ "," ++ binary_to_list(ar_util:encode(Pub)) ++ "\n"])
 		end,
-		lists:seq(1,200)
+		lists:seq(1,50)
 	),
 	file:close(File),
 	file:close(File2).

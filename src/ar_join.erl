@@ -143,6 +143,7 @@ get_block_and_trail(Peers, NewB, BehindCurrent, HashList) ->
 %% @doc Fills node to capacity based on weave storage limit.
 fill_to_capacity(_, [], _) -> ok;
 fill_to_capacity(Peers, Written, ToWrite) ->
+	timer:sleep(10000),
 	try
 		RandBlock = lists:nth(rand:uniform(length(ToWrite)-1), ToWrite),
 		case ar_node:get_full_block(Peers, RandBlock) of

@@ -25,13 +25,15 @@ start() ->
 remove_bad_txs(TXs) ->
 	lists:filter(
 		fun(T) ->
-			case ets:lookup(ar_tx_track_db, T#tx.id) of
-				[{_Key, 0}] -> false;
+			case ets:lookup(?MODULE, T#tx.id) of
+				[{_Key, 0}] -> 
+                    ets:delete(?MODULE, T#tx.id),
+                    false;
 				[{Key, Value}] -> 
-					ets:insert(ar_tx_track_db, {Key, Value-1}),
+					ets:insert(?MODULE, {Key, Value-1}),
 					true;
 				_ -> 
-					ets:insert(ar_tx_track_db, {T#tx.id, 3}),
+					ets:insert(?MODULE, {T#tx.id, 3}),
 					true
 			end
 		end,
